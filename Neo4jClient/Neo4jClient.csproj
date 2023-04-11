@@ -4,8 +4,9 @@
         <TargetFrameworks>net8.0</TargetFrameworks>
         <Company></Company>
         <Copyright>2022 Readify, Tatham Oddie, Charlotte Skardon</Copyright>
-        <Authors>Readify, Tatham Oddie, Charlotte Skardon</Authors>
-        <PackageProjectUrl>https://github.com/DotNet4Neo4j/Neo4jClient</PackageProjectUrl>
+        <Authors>Readify, Tatham Oddie, Charlotte Skardon, modified by Palash Karmaker</Authors>
+		<ApplicationRevision>1.0.0</ApplicationRevision>
+        <PackageProjectUrl>https://github.com/PalashKarmaker/Neo4jClientDotNet8</PackageProjectUrl>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <Description>A .NET client for neo4j: an open source, transactional graph database. It's pretty awesome.</Description>
         <PackageTags>neo4j, nosql, cypher, bolt, graph</PackageTags>
@@ -14,9 +15,10 @@
 
     <PropertyGroup>
       <VersionPrefix>4.0.0</VersionPrefix>
-      <RepositoryUrl>https://github.com/DotNet4Neo4j/neo4jclient</RepositoryUrl>
+      <RepositoryUrl>https://github.com/PalashKarmaker/Neo4jClientDotNet8</RepositoryUrl>
       <RepositoryType>git</RepositoryType>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      <AssemblyName>$(MSBuildProjectName)DotNet8</AssemblyName>
     </PropertyGroup>
 
     <ItemGroup>
