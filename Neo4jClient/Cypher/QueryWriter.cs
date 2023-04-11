@@ -14,7 +14,7 @@ namespace Neo4jClient.Cypher
         readonly IDictionary<string, object> queryParameters;
         CypherResultMode resultMode;
         private CypherResultFormat resultFormat;
-        private readonly List<Bookmark> bookmarks = new List<Bookmark>();
+        private readonly List<Bookmarks> bookmarks = new();
     
         public QueryWriter(string databaseName = null)
         {
@@ -30,7 +30,7 @@ namespace Neo4jClient.Cypher
             IDictionary<string, object> queryParameters,
             CypherResultMode resultMode,
             CypherResultFormat resultFormat,
-            List<Bookmark> bookmarks,
+            List<Bookmarks> bookmarks,
             string identifier)
         {
             this.queryTextBuilder = queryTextBuilder;
@@ -41,7 +41,7 @@ namespace Neo4jClient.Cypher
             this.bookmarks = bookmarks;
         }
 
-        public List<Bookmark> Bookmarks => bookmarks;
+        public List<Bookmarks> Bookmarks => bookmarks;
 
         public CypherResultMode ResultMode
         {
@@ -67,7 +67,7 @@ namespace Neo4jClient.Cypher
         {
             var clonedQueryTextBuilder = new StringBuilder(queryTextBuilder.ToString());
             var clonedParameters = new Dictionary<string, object>(queryParameters);
-            var clonedBookmarks = new List<Bookmark>(bookmarks);
+            var clonedBookmarks = new List<Bookmarks>(bookmarks);
             
             return new QueryWriter(clonedQueryTextBuilder, clonedParameters, resultMode, resultFormat, clonedBookmarks, Identifier)
             {

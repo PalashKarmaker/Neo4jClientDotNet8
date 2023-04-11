@@ -164,7 +164,7 @@ namespace Neo4jClient.Tests.Transactions
                 TransactionManager.ScopedTransactions = new ThreadContextWrapper<TransactionScopeProxy>();
 
                 Assert.Equal(0, TransactionManager.ScopedTransactions.Count);
-                Assert.Null(tm.CurrentInternalTransaction);
+                Assert.Null(TransactionManager.CurrentInternalTransaction);
             }
         }
 
@@ -179,7 +179,7 @@ namespace Neo4jClient.Tests.Transactions
                 var tm = new TransactionManager(client);
                 TransactionManager.ScopedTransactions = null;
 
-                Assert.Null(tm.CurrentInternalTransaction);
+                Assert.Null(TransactionManager.CurrentInternalTransaction);
             }
         }
 

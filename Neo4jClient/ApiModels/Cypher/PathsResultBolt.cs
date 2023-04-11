@@ -39,27 +39,27 @@ namespace Neo4jClient.ApiModels.Cypher
 
         public class PathsResultBoltRelationship
         {
-            [JsonProperty("Id")]
-            public long Id { get; set; }
-            [JsonProperty("Type")]
+            [JsonProperty(nameof(Id))]
+            public string Id { get; set; }
+            [JsonProperty(nameof(Type))]
             public string Type { get; set; }
-            [JsonProperty("StartNodeId")]
-            public long StartNodeId { get; set; }
-            [JsonProperty("EndNodeId")]
-            public long EndNodeId { get; set; }
+            [JsonProperty(nameof(StartNodeId))]
+            public string StartNodeId { get; set; }
+            [JsonProperty(nameof(EndNodeId))]
+            public string EndNodeId { get; set; }
 
             public object this[string key] => Properties[key];
 
-            [JsonProperty("Properties")]
+            [JsonProperty(nameof(Properties))]
             public Dictionary<string, object> Properties { get; set; }
 
             public PathsResultBoltRelationship() { Properties = new Dictionary<string, object>(); }
 
             public PathsResultBoltRelationship(IRelationship relationship)
             {
-                Id = relationship.Id;
-                StartNodeId = relationship.StartNodeId;
-                EndNodeId = relationship.EndNodeId;
+                Id = relationship.ElementId;
+                StartNodeId = relationship.StartNodeElementId;
+                EndNodeId = relationship.EndNodeElementId;
                 Type = relationship.Type;
                 Properties = relationship.Properties.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             }
@@ -76,38 +76,26 @@ namespace Neo4jClient.ApiModels.Cypher
                        && Properties.ContentsEqual(other.Properties);
             }
 
-            public override bool Equals(object obj)
-            {
-                return Equals(obj as PathsResultBoltRelationship);
-            }
+            public override bool Equals(object obj) => Equals(obj as PathsResultBoltRelationship);
 
-            public override int GetHashCode()
-            {
-                var hashCode = 2105322407;
-                hashCode = hashCode * -1521134295 + Id.GetHashCode();
-                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Type);
-                hashCode = hashCode * -1521134295 + StartNodeId.GetHashCode();
-                hashCode = hashCode * -1521134295 + EndNodeId.GetHashCode();
-                hashCode = hashCode * -1521134295 + EqualityComparer<IReadOnlyDictionary<string, object>>.Default.GetHashCode(Properties);
-                return hashCode;
-            }
+            public override int GetHashCode() => System.HashCode.Combine(Id, Type, StartNodeId, EndNodeId, Properties);
         }
 
         public class PathsResultBoltNode 
         {
-            [JsonProperty("Id")]
-            public long Id { get; set; }
-            [JsonProperty("Labels")]
+            [JsonProperty(nameof(Id))]
+            public string Id { get; set; }
+            [JsonProperty(nameof(Labels))]
             public List<string> Labels { get; set; }
             public object this[string key] => Properties[key];
-            [JsonProperty("Properties")]
+            [JsonProperty(nameof(Properties))]
             public Dictionary<string, object> Properties { get; set; }
 
             public PathsResultBoltNode() { Properties = new Dictionary<string, object>(); }
 
             internal PathsResultBoltNode(INode node)
             {
-                Id = node.Id;
+                Id = node.ElementId;
                 Labels = node.Labels?.ToList();
                 Properties = node.Properties.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             }
@@ -122,19 +110,9 @@ namespace Neo4jClient.ApiModels.Cypher
                        && Properties.ContentsEqual(other.Properties);
             }
 
-            public override bool Equals(object obj)
-            {
-                return Equals( obj as PathsResultBoltNode);
-            }
+            public override bool Equals(object obj) => Equals(obj as PathsResultBoltNode);
 
-            public override int GetHashCode()
-            {
-                var hashCode = 1343812023;
-                hashCode = hashCode * -1521134295 + Id.GetHashCode();
-                hashCode = hashCode * -1521134295 + EqualityComparer<IReadOnlyList<string>>.Default.GetHashCode(Labels);
-                hashCode = hashCode * -1521134295 + EqualityComparer<IReadOnlyDictionary<string, object>>.Default.GetHashCode(Properties);
-                return hashCode;
-            }
+            public override int GetHashCode() => System.HashCode.Combine(Id, Labels, Properties);
         }
     }
 }

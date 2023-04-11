@@ -50,6 +50,6 @@ namespace Neo4jClient.Transactions
         /// <summary>
         /// The last bookmark provided by the database to allow for causal consistency.
         /// </summary>
-        Bookmark LastBookmark { get; }
+        Bookmarks LastBookmarks { get; }
     }
 }

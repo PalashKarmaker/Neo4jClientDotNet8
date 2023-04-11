@@ -105,13 +105,13 @@ namespace Neo4jClient.Transactions.Bolt
         public NameValueCollection CustomHeaders { get; set; }
 
         /// <summary>
-        /// Gets the bookmark received following the last successfully completed Transaction.
+        /// Gets the bookmarks received following the last successfully completed Transaction.
         /// If no bookmark was received or if this transaction was rolled back, the bookmark value will not be changed. 
         /// </summary>
-        public Bookmark LastBookmark => Session?.LastBookmark;
+        public Bookmarks LastBookmarks => Session?.LastBookmarks;
 
         #endregion
-        
+
         public static void DoCommit(ITransactionExecutionEnvironmentBolt transactionExecutionEnvironment)
         {
             transactionExecutionEnvironment.DriverTransaction.CommitAsync().Wait();
@@ -123,10 +123,5 @@ namespace Neo4jClient.Transactions.Bolt
             transactionExecutionEnvironment.DriverTransaction.RollbackAsync().Wait();
             // transactionExecutionEnvironment.DriverTransaction.Dispose();
         }
-
-        // public static BoltNeo4jTransaction FromIdAndClient(Guid transactionId, IDriver driver)
-        // {
-        //     return new BoltNeo4jTransaction(driver, null, Database){Id = transactionId};
-        // }
     }
 }

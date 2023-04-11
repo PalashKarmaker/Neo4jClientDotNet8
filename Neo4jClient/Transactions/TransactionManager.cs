@@ -27,10 +27,10 @@ namespace Neo4jClient.Transactions
         }
 #else
         private static readonly AsyncLocal<IScopedTransactions<TransactionScopeProxy>> scopedTransactions
-            = new AsyncLocal<IScopedTransactions<TransactionScopeProxy>>();
+            = new();
         internal static IScopedTransactions<TransactionScopeProxy> ScopedTransactions
         {
-            get => scopedTransactions.Value ?? (scopedTransactions.Value = ThreadContextHelper.CreateScopedTransactions());
+            get => scopedTransactions.Value ??= ThreadContextHelper.CreateScopedTransactions();
             set => scopedTransactions.Value = value;
         }
 #endif
@@ -46,7 +46,7 @@ namespace Neo4jClient.Transactions
             ScopedTransactions = ThreadContextHelper.CreateScopedTransactions();
         }
 
-        private TransactionContext GetContext(NameValueCollection customHeaders = null)
+        private static TransactionContext GetContext()
         {
             var nonDtcTransaction = CurrentInternalTransaction;
             if (nonDtcTransaction != null && nonDtcTransaction.Committable)
@@ -73,10 +73,10 @@ namespace Neo4jClient.Transactions
             }
         }
 
-        public TransactionScopeProxy CurrentInternalTransaction => ScopedTransactions.TryPeek();
+        public static TransactionScopeProxy CurrentInternalTransaction => ScopedTransactions.TryPeek();
 
         public ITransaction CurrentTransaction => CurrentInternalTransaction;
-        public Bookmark LastBookmark => CurrentTransaction.LastBookmark;
+        public Bookmarks LastBookmarks => CurrentTransaction.LastBookmarks;
 
         public ITransaction BeginTransaction(TransactionScopeOption option, IEnumerable<string> bookmarks, string database)
         {
@@ -135,14 +135,14 @@ namespace Neo4jClient.Transactions
             ScopedTransactions.Push(transaction);
         }
 
-        private ITransaction BeginNewTransaction(string database)
+        private Neo4jTransactionProxy BeginNewTransaction(string database)
         {
             var transaction = new Neo4jTransactionProxy(client, GenerateTransaction(database), true);
             PushScopeTransaction(transaction);
             return transaction;
         }
 
-        private ITransaction BeginJoinTransaction()
+        private Neo4jTransactionProxy BeginJoinTransaction()
         {
             var parentScope = CurrentInternalTransaction;
             if (parentScope == null)
@@ -165,7 +165,7 @@ namespace Neo4jClient.Transactions
             return joinedTransaction;
         }
 
-        private ITransaction BeginSuppressTransaction()
+        private SuppressTransactionProxy BeginSuppressTransaction()
         {
             var suppressTransaction = new SuppressTransactionProxy(client);
             PushScopeTransaction(suppressTransaction);
@@ -187,7 +187,7 @@ namespace Neo4jClient.Transactions
             // we try to get the current dtc transaction. If we are in a System.Transactions transaction and it has
             // been "promoted" to be handled by DTC then transactionObject will be null, but it doesn't matter as
             // we don't care about updating the object.
-            var txContext = GetContext(query.CustomHeaders);
+            var txContext = GetContext();
             txContext.CustomHeaders = query.CustomHeaders;
             policy.Database = txContext.NeoTransaction.Database;
             // the main difference with a normal Request.With() call is that the request is associated with the

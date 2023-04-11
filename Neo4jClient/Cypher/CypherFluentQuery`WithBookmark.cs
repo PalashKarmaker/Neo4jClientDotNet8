@@ -11,7 +11,7 @@ namespace Neo4jClient.Cypher
             if (string.IsNullOrWhiteSpace(bookmark))
                 return this;
 
-            QueryWriter.Bookmarks.Add(Bookmark.From(bookmark));
+            QueryWriter.Bookmarks.Add(Bookmarks.From(bookmark));
             return this;
         }
 
@@ -21,7 +21,7 @@ namespace Neo4jClient.Cypher
             if (bookmarks == null)
                 return this;
 
-            QueryWriter.Bookmarks.AddRange(bookmarks.Where(b => !string.IsNullOrWhiteSpace(b)).Select(b => Bookmark.From(b)));
+            QueryWriter.Bookmarks.AddRange(bookmarks.Where(b => !string.IsNullOrWhiteSpace(b)).Select(b => Bookmarks.From(b)));
             return this;
         }
     }

@@ -35,7 +35,7 @@ namespace Neo4jClient.Transactions
         }
 
         public NameValueCollection CustomHeaders { get; set; }
-        public Bookmark LastBookmark => throw new InvalidOperationException("This is not possible with the GraphClient. You would need the BoltGraphClient.");
+        public Bookmarks LastBookmarks => throw new InvalidOperationException("This is not possible with the GraphClient. You would need the BoltGraphClient.");
 
         public virtual void Dispose()
         {

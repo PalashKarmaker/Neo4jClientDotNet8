@@ -42,7 +42,7 @@ namespace Neo4jClient.Cypher
             int? maxExecutionTime = null, 
             NameValueCollection customHeaders = null,
             bool isWrite = true,
-            IEnumerable<Bookmark> bookmarks = null,
+            IEnumerable<Bookmarks> bookmarks = null,
             string identifier = null,
             bool includeQueryStats = false
             )
@@ -66,7 +66,7 @@ namespace Neo4jClient.Cypher
 
         public string Identifier { get; set; }
 
-        public IEnumerable<Bookmark> Bookmarks { get; set; }
+        public IEnumerable<Bookmarks> Bookmarks { get; set; }
 
         public IDictionary<string, object> QueryParameters => queryParameters;
 

@@ -12,23 +12,21 @@ namespace Neo4jClient.Extensions
 
         public static IAsyncSession AsyncSession(this IDriver driver, Version databaseVersion, string database, bool isWrite, IEnumerable<string> bookmarks)
         {
-            IEnumerable<Bookmark> properBookmarks = null;
+            IEnumerable<Bookmarks> properBookmarks = null;
             if (bookmarks != null)
-                properBookmarks = bookmarks.Select(b => Bookmark.From(b));
+                properBookmarks = bookmarks.Select(b => Bookmarks.From(b));
 
             return driver.AsyncSession(databaseVersion, database, isWrite, properBookmarks);
         }
 
-        public static IAsyncSession AsyncSession(this IDriver driver, Version databaseVersion, string database, bool isWrite, IEnumerable<Bookmark> bookmarks)
-        {
-            return driver.AsyncSession(builder =>
-            {
-                if(databaseVersion.Major >= 4)
-                    builder.WithDatabase(database);
-                builder.WithDefaultAccessMode(isWrite ? AccessMode.Write : AccessMode.Read);
-                if (bookmarks != null)
-                    builder.WithBookmarks(bookmarks.ToArray());
-            });
-        }
+        public static IAsyncSession AsyncSession(this IDriver driver, Version databaseVersion, string database, bool isWrite, IEnumerable<Bookmarks> bookmarks) 
+            => driver.AsyncSession(builder =>
+                                                                                                                                                                           {
+                                                                                                                                                                               if (databaseVersion.Major >= 4)
+                                                                                                                                                                                   builder.WithDatabase(database);
+                                                                                                                                                                               builder.WithDefaultAccessMode(isWrite ? AccessMode.Write : AccessMode.Read);
+                                                                                                                                                                               if (bookmarks != null)
+                                                                                                                                                                                   builder.WithBookmarks(bookmarks.ToArray());
+                                                                                                                                                                           });
     }
 }
