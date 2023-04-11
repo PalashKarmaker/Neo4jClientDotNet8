@@ -8,7 +8,7 @@ using Neo4j.Driver;
 using Neo4jClient.Cypher;
 using Xunit;
 
-namespace Neo4jClient.Tests.BoltGraphClientTests.Bookmarks
+namespace Neo4jClient.Tests.BoltGraphClientTests.BookmarkTests
 {
     public class BookmarkTests : IClassFixture<CultureInfoSetupFixture>
     {
@@ -22,19 +22,19 @@ namespace Neo4jClient.Tests.BoltGraphClientTests.Bookmarks
             [Fact]
             public async Task TestMocking()
             {
-                Mock<IAsyncSession> sessionMock = new Mock<IAsyncSession>();
-                Mock<IDriver> driverMock = new Mock<IDriver>();
+                Mock<IAsyncSession> sessionMock = new();
+                Mock<IDriver> driverMock = new();
                 driverMock.Setup(d => d.AsyncSession()).Returns(sessionMock.Object);
                 driverMock.Setup(d => d.AsyncSession(It.IsAny<Action<SessionConfigBuilder>>())).Returns(sessionMock.Object);
 
-                driverMock.Object.AsyncSession(x => x.WithBookmarks(Bookmark.From("x"))).Should().NotBeNull();
+                driverMock.Object.AsyncSession(x => x.WithBookmarks(Bookmarks.From("x"))).Should().NotBeNull();
             }
 
             [Fact]
             public async Task ArgsContainBookmarksUsed()
             {
                 // Arrange
-                var bookmarks = new List<Bookmark> {Bookmark.From("Bookmark1"), Bookmark.From("Bookmark2")};
+                var bookmarks = new List<Bookmarks> { Bookmarks.From("Bookmark1"), Bookmarks.From("Bookmark2") };
 
                 const string queryText = "RETURN [] AS data";
 
@@ -42,29 +42,27 @@ namespace Neo4jClient.Tests.BoltGraphClientTests.Bookmarks
 
                 var cypherQuery = new CypherQuery(queryText, queryParams, CypherResultMode.Set, CypherResultFormat.Transactional, "neo4j") {Bookmarks = bookmarks};
 
-                using (var testHarness = new BoltTestHarness())
+                using var testHarness = new BoltTestHarness();
+                var recordMock = new Mock<IRecord>();
+                recordMock.Setup(r => r["data"]).Returns(new List<INode>());
+                recordMock.Setup(r => r.Keys).Returns(new[] { "data" });
+
+                var testStatementResult = new TestStatementResult(new[] { "data" }, recordMock.Object);
+                testHarness.SetupCypherRequestResponse(cypherQuery.QueryText, cypherQuery.QueryParameters, testStatementResult);
+
+                var graphClient = await testHarness.CreateAndConnectBoltGraphClient();
+                graphClient.OperationCompleted += (s, e) =>
                 {
-                    var recordMock = new Mock<IRecord>();
-                    recordMock.Setup(r => r["data"]).Returns(new List<INode>());
-                    recordMock.Setup(r => r.Keys).Returns(new[] {"data"});
+                    e.BookmarksUsed.Should().Contain(bookmarks[0]);
+                    e.BookmarksUsed.Should().Contain(bookmarks[1]);
+                };
 
-                    var testStatementResult = new TestStatementResult(new[] {"data"}, recordMock.Object);
-                    testHarness.SetupCypherRequestResponse(cypherQuery.QueryText, cypherQuery.QueryParameters, testStatementResult);
+                var driverSess = testHarness.MockDriver.Object.AsyncSession();
+                testHarness.MockDriver.Verify(s => s.AsyncSession(), Times.Once);
 
-                    var graphClient = await testHarness.CreateAndConnectBoltGraphClient();
-                    graphClient.OperationCompleted += (s, e) =>
-                    {
-                        e.BookmarksUsed.Should().Contain(bookmarks[0]);
-                        e.BookmarksUsed.Should().Contain(bookmarks[1]);
-                    };
+                driverSess.Should().NotBeNull();
 
-                    var driverSess = testHarness.MockDriver.Object.AsyncSession();
-                    testHarness.MockDriver.Verify(s => s.AsyncSession(), Times.Once);
-                    
-                    driverSess.Should().NotBeNull();
-
-                    await graphClient.ExecuteGetCypherResultsAsync<IEnumerable<ObjectWithIds>>(cypherQuery);
-                }
+                await graphClient.ExecuteGetCypherResultsAsync<IEnumerable<ObjectWithIds>>(cypherQuery);
             }
 
 
@@ -72,8 +70,8 @@ namespace Neo4jClient.Tests.BoltGraphClientTests.Bookmarks
             public async Task ArgsContainBookmarkUsed()
             {
                 // Arrange
-                var bookmark = Bookmark.From("Bookmark1");
-                var bookmarks = new List<Bookmark> {bookmark};
+                var bookmark = Bookmarks.From("Bookmark1");
+                var bookmarks = new List<Bookmarks> {bookmark};
 
                 const string queryText = "RETURN [] AS data";
 
@@ -81,20 +79,18 @@ namespace Neo4jClient.Tests.BoltGraphClientTests.Bookmarks
 
                 var cypherQuery = new CypherQuery(queryText, queryParams, CypherResultMode.Set, CypherResultFormat.Transactional, "neo4j") {Bookmarks = bookmarks};
 
-                using (var testHarness = new BoltTestHarness())
-                {
-                    var recordMock = new Mock<IRecord>();
-                    recordMock.Setup(r => r["data"]).Returns(new List<INode>());
-                    recordMock.Setup(r => r.Keys).Returns(new[] {"data"});
+                using var testHarness = new BoltTestHarness();
+                var recordMock = new Mock<IRecord>();
+                recordMock.Setup(r => r["data"]).Returns(new List<INode>());
+                recordMock.Setup(r => r.Keys).Returns(new[] { "data" });
 
-                    var testStatementResult = new TestStatementResult(new[] {"data"}, recordMock.Object);
-                    testHarness.SetupCypherRequestResponse(cypherQuery.QueryText, cypherQuery.QueryParameters, testStatementResult);
+                var testStatementResult = new TestStatementResult(new[] { "data" }, recordMock.Object);
+                testHarness.SetupCypherRequestResponse(cypherQuery.QueryText, cypherQuery.QueryParameters, testStatementResult);
 
-                    var graphClient = await testHarness.CreateAndConnectBoltGraphClient();
-                    graphClient.OperationCompleted += (s, e) => { e.BookmarksUsed.Should().Contain(bookmarks[0]); };
+                var graphClient = await testHarness.CreateAndConnectBoltGraphClient();
+                graphClient.OperationCompleted += (s, e) => { e.BookmarksUsed.Should().Contain(bookmarks[0]); };
 
-                    await graphClient.ExecuteGetCypherResultsAsync<IEnumerable<ObjectWithIds>>(cypherQuery);
-                }
+                await graphClient.ExecuteGetCypherResultsAsync<IEnumerable<ObjectWithIds>>(cypherQuery);
             }
 
             [Fact]
@@ -108,53 +104,49 @@ namespace Neo4jClient.Tests.BoltGraphClientTests.Bookmarks
 
                 var cypherQuery = new CypherQuery(queryText, queryParams, CypherResultMode.Set, CypherResultFormat.Transactional, "neo4j");
 
-                using (var testHarness = new BoltTestHarness())
-                {
-                    var recordMock = new Mock<IRecord>();
-                    recordMock.Setup(r => r["data"]).Returns(new List<INode>());
-                    recordMock.Setup(r => r.Keys).Returns(new[] {"data"});
+                using var testHarness = new BoltTestHarness();
+                var recordMock = new Mock<IRecord>();
+                recordMock.Setup(r => r["data"]).Returns(new List<INode>());
+                recordMock.Setup(r => r.Keys).Returns(new[] { "data" });
 
-                    testHarness.MockSession.Setup(s => s.LastBookmark).Returns(lastBookmark);
+                testHarness.MockSession.Setup(s => s.LastBookmark).Returns(lastBookmark);
 
-                    var testStatementResult = new TestStatementResult(new[] {"data"}, recordMock.Object);
-                    testHarness.SetupCypherRequestResponse(cypherQuery.QueryText, cypherQuery.QueryParameters, testStatementResult);
+                var testStatementResult = new TestStatementResult(new[] { "data" }, recordMock.Object);
+                testHarness.SetupCypherRequestResponse(cypherQuery.QueryText, cypherQuery.QueryParameters, testStatementResult);
 
-                    var graphClient = await testHarness.CreateAndConnectBoltGraphClient();
-                    graphClient.OperationCompleted += (s, e) => { e.LastBookmark.Should().Be(lastBookmark); };
+                var graphClient = await testHarness.CreateAndConnectBoltGraphClient();
+                graphClient.OperationCompleted += (s, e) => { e.LastBookmarks.Should().Be(lastBookmark); };
 
-                    await graphClient.ExecuteGetCypherResultsAsync<IEnumerable<ObjectWithIds>>(cypherQuery);
-                }
+                await graphClient.ExecuteGetCypherResultsAsync<IEnumerable<ObjectWithIds>>(cypherQuery);
             }
 
             [Fact(Skip = "Can't test this at the moment, as there is no way to get the SessionConfigBuilder results")]
             public async Task SessionIsCalledWithBookmark()
             {
                 // Arrange
-                var bookmark = Bookmark.From("Bookmark1");
+                var bookmark = Bookmarks.From("Bookmark1");
 
-                var cypherQuery = new CypherQuery("RETURN 1", new Dictionary<string, object>(), CypherResultMode.Projection, CypherResultFormat.Transactional, "neo4j") {Bookmarks = new List<Bookmark>{bookmark}};
+                var cypherQuery = new CypherQuery("RETURN 1", new Dictionary<string, object>(), CypherResultMode.Projection, CypherResultFormat.Transactional, "neo4j") {Bookmarks = new List<Bookmarks>{bookmark}};
 
-                using (var testHarness = new BoltTestHarness())
+                using var testHarness = new BoltTestHarness();
+                try
                 {
-                    try
-                    {
-                        (await (await testHarness.CreateAndConnectBoltGraphClient()).ExecuteGetCypherResultsAsync<object>(cypherQuery)).ToArray();
-                    }
-                    catch
-                    {
-                        /*Not interested in actually getting results*/
-                    }
-
-                    Action<SessionConfigBuilder> scb;
-
-                    //Assert
-                    // testHarness.MockDriver.Verify(d => d.AsyncSession(It.IsAny<AccessMode>(), It.Is<IEnumerable<string>>(s => s.Contains(bookmark))), Times.Once);
-                    // testHarness.MockDriver.Verify(d => d.AsyncSession(It.Is<Action<SessionConfigBuilder>>()));
-
-                    // testHarness.MockDriver.Object.Config
-                    testHarness.MockDriver.Verify(d => d.AsyncSession(It.IsAny<Action<SessionConfigBuilder>>()), Times.Once);
-                    throw new NotImplementedException();
+                    _ = (await (await testHarness.CreateAndConnectBoltGraphClient()).ExecuteGetCypherResultsAsync<object>(cypherQuery)).ToArray();
                 }
+                catch
+                {
+                    /*Not interested in actually getting results*/
+                }
+
+                Action<SessionConfigBuilder> scb;
+
+                //Assert
+                // testHarness.MockDriver.Verify(d => d.AsyncSession(It.IsAny<AccessMode>(), It.Is<IEnumerable<string>>(s => s.Contains(bookmark))), Times.Once);
+                // testHarness.MockDriver.Verify(d => d.AsyncSession(It.Is<Action<SessionConfigBuilder>>()));
+
+                // testHarness.MockDriver.Object.Config
+                testHarness.MockDriver.Verify(d => d.AsyncSession(It.IsAny<Action<SessionConfigBuilder>>()), Times.Once);
+                throw new NotImplementedException();
             }
 
 
@@ -162,27 +154,25 @@ namespace Neo4jClient.Tests.BoltGraphClientTests.Bookmarks
             public async Task SessionIsCalledWithBookmarks()
             {
                 // Arrange
-                var bookmarks = new List<Bookmark> { Bookmark.From("Bookmark1"), Bookmark.From("Bookmark2") };
+                var bookmarks = new List<Bookmarks> { Bookmarks.From("Bookmark1"), Bookmarks.From("Bookmark2") };
 
                 var cypherQuery = new CypherQuery("RETURN 1", new Dictionary<string, object>(), CypherResultMode.Projection, CypherResultFormat.Transactional, "neo4j") {Bookmarks = bookmarks};
 
-                using (var testHarness = new BoltTestHarness())
+                using var testHarness = new BoltTestHarness();
+                try
                 {
-                    try
-                    {
-                        (await (await testHarness.CreateAndConnectBoltGraphClient()).ExecuteGetCypherResultsAsync<object>(cypherQuery)).ToArray();
-                    }
-                    catch
-                    {
-                        /*Not interested in actually getting results*/
-                    }
-
-                    //Assert
-                    // testHarness.MockDriver.Verify(d => d.Session(It.IsAny<AccessMode>(), It.Is<IEnumerable<string>>(s => s.Contains(bookmarks[0]) && s.Contains(bookmarks[1]))), Times.Once);
-                    testHarness.MockDriver.Verify(d => d.AsyncSession(It.IsAny<Action<SessionConfigBuilder>>()), Times.Once);
-
-                    throw new NotImplementedException();
+                    _ = (await (await testHarness.CreateAndConnectBoltGraphClient()).ExecuteGetCypherResultsAsync<object>(cypherQuery)).ToArray();
                 }
+                catch
+                {
+                    /*Not interested in actually getting results*/
+                }
+
+                //Assert
+                // testHarness.MockDriver.Verify(d => d.Session(It.IsAny<AccessMode>(), It.Is<IEnumerable<string>>(s => s.Contains(bookmarks[0]) && s.Contains(bookmarks[1]))), Times.Once);
+                testHarness.MockDriver.Verify(d => d.AsyncSession(It.IsAny<Action<SessionConfigBuilder>>()), Times.Once);
+
+                throw new NotImplementedException();
             }
         }
     }

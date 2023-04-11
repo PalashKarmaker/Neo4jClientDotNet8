@@ -719,8 +719,8 @@ namespace Neo4jClient.Tests.BoltGraphClientTests.Cypher
                 Assert.Equal(1, results.First().Length);
                 results.First().Nodes.Count().Should().Be(2);
                 results.First().Relationships.Count().Should().Be(1);
-                results.First().End.Id.Should().Be(1);
-                results.First().Start.Id.Should().Be(2);
+                results.First().End.Id.Should().Be("1");
+                results.First().Start.Id.Should().Be("2");
             }
         }
  
@@ -766,14 +766,14 @@ namespace Neo4jClient.Tests.BoltGraphClientTests.Cypher
                 var resultPath = results.First();
                 Assert.Equal(1, resultPath.Length);
                 resultPath.Nodes.Count.Should().Be(2);
-                resultPath.End.Id.Should().Be(1);
+                resultPath.End.Id.Should().Be("1");
                 resultPath.End.Labels.Should().BeEquivalentTo("Node");
-                resultPath.Start.Id.Should().Be(2);
+                resultPath.Start.Id.Should().Be("2");
                 resultPath.Start.Labels.Should().BeEquivalentTo("Node");
                 resultPath.Relationships.Count.Should().Be(1);
-                resultPath.Relationships[0].Id.Should().Be(3);
-                resultPath.Relationships[0].StartNodeId.Should().Be(2);
-                resultPath.Relationships[0].EndNodeId.Should().Be(1);
+                resultPath.Relationships[0].Id.Should().Be("3");
+                resultPath.Relationships[0].StartNodeId.Should().Be("2");
+                resultPath.Relationships[0].EndNodeId.Should().Be("1");
                 resultPath.Relationships[0].Type.Should().Be("Foo");
             }
         }
