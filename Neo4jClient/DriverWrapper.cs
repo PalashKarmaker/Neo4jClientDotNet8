@@ -45,42 +45,6 @@ namespace Neo4jClient
             }
         }
 
-        // public IAsyncSession Session()
-        // {
-        //     return driver.AsyncSession();
-        // }
-        //
-        // public IAsyncSession Session(AccessMode defaultMode)
-        // {
-        //     return driver.AsyncSession(x => x.WithDefaultAccessMode(defaultMode));
-        // }
-        //
-        // public IAsyncSession Session(string bookmark)
-        // {
-        //     return driver.AsyncSession(x => x.WithBookmarks(Bookmark.From(bookmark)));
-        // }
-        //
-        // public IAsyncSession Session(AccessMode defaultMode, string bookmark)
-        // {
-        //     return driver.AsyncSession(x => x.WithDefaultAccessMode(defaultMode).WithBookmarks(Bookmark.From(bookmark)));
-        // }
-        //
-        // public IAsyncSession Session(AccessMode defaultMode, IEnumerable<string> bookmarks)
-        // {
-        //     return driver.AsyncSession(x =>
-        //     {
-        //         x.WithDefaultAccessMode(defaultMode);
-        //         if (bookmarks != null) x.WithBookmarks(Bookmark.From(bookmarks.ToArray()));
-        //     });
-        // }
-        //
-        // public IAsyncSession Session(IEnumerable<string> bookmarks)
-        // {
-        //     return driver.AsyncSession(x =>
-        //     {
-        //         if (bookmarks != null) x.WithBookmarks(Bookmark.From(bookmarks.ToArray()));
-        //     });
-        // }
         
         public IAsyncSession AsyncSession()
         {
