@@ -92,6 +92,7 @@ namespace Neo4jClient
             return driver.AsyncSession(action);
         }
 
+        [Obsolete]
         public Task CloseAsync()
         {
             return driver.CloseAsync();
