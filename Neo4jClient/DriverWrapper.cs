@@ -45,7 +45,6 @@ namespace Neo4jClient
             }
         }
 
-        
         public IAsyncSession AsyncSession()
         {
             return driver.AsyncSession();
