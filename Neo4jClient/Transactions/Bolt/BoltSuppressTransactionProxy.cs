@@ -36,6 +36,6 @@ namespace Neo4jClient.Transactions.Bolt
         #pragma warning restore 1998
 
         public override bool IsOpen => true;
-        public override Bookmark LastBookmark => throw new NotImplementedException();
+        public override Bookmarks LastBookmarks => TransactionContext.LastBookmarks;
     }
 }

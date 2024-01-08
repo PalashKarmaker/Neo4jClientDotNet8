@@ -20,7 +20,8 @@ namespace Neo4jClient.Transactions.Bolt
         public override bool Committable => true;
 
         public override bool IsOpen => TransactionContext != null && TransactionContext.IsOpen;
-        public override Bookmark LastBookmark => TransactionContext?.BoltTransaction?.LastBookmark;
+
+        public override Bookmarks LastBookmarks => TransactionContext?.BoltTransaction?.LastBookmarks;
 
         protected override async Task DoCommitAsync()
         {

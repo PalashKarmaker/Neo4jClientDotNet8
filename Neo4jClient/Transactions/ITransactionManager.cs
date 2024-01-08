@@ -28,7 +28,7 @@ namespace Neo4jClient.Transactions
         ITransaction BeginTransaction(TransactionScopeOption option, IEnumerable<string> bookmarks, string database);
         void EndTransaction();
         ITransaction CurrentTransaction { get; }
-        Bookmark LastBookmark { get; }
+        Bookmarks LastBookmarks { get; }
         Task<T> EnqueueCypherRequest(string commandDescription, IGraphClient graphClient, CypherQuery query);
     }
 }

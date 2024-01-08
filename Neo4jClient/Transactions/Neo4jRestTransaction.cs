@@ -9,6 +9,7 @@ using Neo4jClient.Serialization;
 namespace Neo4jClient.Transactions
 {
     using Neo4j.Driver;
+    using System.Net.Http;
 
     /// <summary>
     /// Implements the Neo4j HTTP transaction for multiple HTTP requests
@@ -21,7 +22,6 @@ namespace Neo4jClient.Transactions
 
         public Uri Endpoint { get; set; }
         public NameValueCollection CustomHeaders { get; set; }
-        public Bookmark LastBookmark => throw new InvalidOperationException("This is not possible with the GraphClient. You would need the BoltGraphClient.");
 
         internal int Id
         {
@@ -38,7 +38,7 @@ namespace Neo4jClient.Transactions
                 {
                     transactionEndpointLength++;
                 }
-                return int.Parse(Endpoint.ToString().Substring(transactionEndpointLength));
+                return int.Parse(Endpoint.ToString()[transactionEndpointLength..]);
             }
         }
 
@@ -51,6 +51,8 @@ namespace Neo4jClient.Transactions
         }
 
         public string Database { get; set; }
+
+        public Bookmarks LastBookmarks => throw new InvalidOperationException("This is not possible with the GraphClient. You would need the BoltGraphClient.");
 
         protected void CleanupAfterClosedTransaction()
         {
@@ -133,13 +135,7 @@ namespace Neo4jClient.Transactions
             CheckForOpenTransaction();
             // no need to issue a request as we haven't sent a single request
             if (Endpoint == null)
-            {
-#if NET45
-                return Task.FromResult(0);
-#else
                 return Task.CompletedTask;
-#endif
-            }
 
             return DoKeepAlive(Endpoint, client.ExecutionConfiguration, client.Serializer);
         }
@@ -162,16 +158,14 @@ namespace Neo4jClient.Transactions
             Endpoint = transactionEndpoint;
         }
 
-        private static Task DoCommit(Uri commitUri, ExecutionConfiguration executionConfiguration, ISerializer serializer, NameValueCollection customHeaders = null)
-        {
-            return Request.With(executionConfiguration, customHeaders)
+        private static Task<HttpResponseMessage> DoCommit(Uri commitUri, ExecutionConfiguration executionConfiguration, ISerializer serializer, NameValueCollection customHeaders = null) => 
+            Request.With(executionConfiguration, customHeaders)
                .Post(commitUri.AddPath("commit"))
                .WithJsonContent(serializer.Serialize(new CypherStatementList()))
                .WithExpectedStatusCodes(HttpStatusCode.OK)
                .ExecuteAsync();
-        }
 
-        private static Task DoRollback(Uri rollbackUri, ExecutionConfiguration executionConfiguration, NameValueCollection customHeaders)
+        private static Task<HttpResponseMessage> DoRollback(Uri rollbackUri, ExecutionConfiguration executionConfiguration, NameValueCollection customHeaders)
         {
             // not found is ok because it means our transaction either was committed or the timeout was expired
             // and it was rolled back for us
@@ -229,25 +223,18 @@ namespace Neo4jClient.Transactions
         /// <param name="transactionExecutionEnvironment">The transaction execution environment</param>
         internal static Task DoRollback(ITransactionExecutionEnvironment transactionExecutionEnvironment, NameValueCollection customHeaders = null)
         {
-            try
-            {
-                var rollbackUri = transactionExecutionEnvironment.TransactionBaseEndpoint.AddPath(
+            var rollbackUri = transactionExecutionEnvironment.TransactionBaseEndpoint.AddPath(
                     transactionExecutionEnvironment.TransactionId.ToString());
-                return DoRollback(
-                    rollbackUri,
-                    new ExecutionConfiguration
-                    {
-                        HttpClient = new HttpClientWrapper(transactionExecutionEnvironment.Username, transactionExecutionEnvironment.Password),
-                        JsonConverters = GraphClient.DefaultJsonConverters,
-                        UseJsonStreaming = transactionExecutionEnvironment.UseJsonStreaming,
-                        UserAgent = transactionExecutionEnvironment.UserAgent
-                    },
-                    customHeaders);
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            return DoRollback(
+                rollbackUri,
+                new ExecutionConfiguration
+                {
+                    HttpClient = new HttpClientWrapper(transactionExecutionEnvironment.Username, transactionExecutionEnvironment.Password),
+                    JsonConverters = GraphClient.DefaultJsonConverters,
+                    UseJsonStreaming = transactionExecutionEnvironment.UseJsonStreaming,
+                    UserAgent = transactionExecutionEnvironment.UserAgent
+                },
+                customHeaders);
         }
 
         /// <summary>
@@ -274,9 +261,7 @@ namespace Neo4jClient.Transactions
         public void Dispose()
         {
             if (IsOpen)
-            {
                 RollbackAsync().Wait(); // annoying but can't dispose asynchronously
-            }
         }
     }
 }

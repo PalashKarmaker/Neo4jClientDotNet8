@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
-using System.Diagnostics.SymbolStore;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using Neo4j.Driver;
 using Neo4jClient.ApiModels;
 using Neo4jClient.ApiModels.Cypher;
@@ -16,6 +8,13 @@ using Neo4jClient.Transactions;
 using Neo4jClient.Transactions.Bolt;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using ITransaction = Neo4jClient.Transactions.ITransaction;
 
 //TODO: Logging
@@ -41,11 +40,11 @@ namespace Neo4jClient
             new NullableEnumValueConverter(),
             new TimeZoneInfoConverter(),
             new EnumValueConverter(),
-            new ZonedDateTimeConverter(), 
+            new ZonedDateTimeConverter(),
             new LocalDateTimeConverter()
         };
 
-        private static readonly DefaultContractResolver DefaultJsonContractResolver = new DefaultContractResolver();
+        private static readonly DefaultContractResolver DefaultJsonContractResolver = new();
 
         private readonly string password;
         private readonly string realm;
@@ -77,12 +76,12 @@ namespace Neo4jClient
             if (localUris != null && localUris.Any())
             {
                 //TODO - const/etc these
-                if (!new [] {"neo4j", "neo4j+s", "neo4j+ssc"}.Contains(uri.Scheme.ToLowerInvariant()))
+                if (!new[] { "neo4j", "neo4j+s", "neo4j+ssc" }.Contains(uri.Scheme.ToLowerInvariant()))
                     throw new NotSupportedException($"To use the {nameof(BoltGraphClient)} with an Address Resolver you need to use the 'neo4j://' scheme, for the 'uri' parameter, not '{uri.Scheme}'.");
 
                 addressResolver = new AddressResolver(uri, localUris);
             }
-            else if (!new [] {"neo4j", "neo4j+s", "neo4j+ssc", "bolt", "bolt+s", "bolt+ssc"}.Contains(uri.Scheme.ToLowerInvariant()))
+            else if (!new[] { "neo4j", "neo4j+s", "neo4j+ssc", "bolt", "bolt+s", "bolt+ssc" }.Contains(uri.Scheme.ToLowerInvariant()))
             {
                 throw new NotSupportedException($"To use the {nameof(BoltGraphClient)} you need to provide a 'bolt://' or 'neo4j://' scheme, not '{uri.Scheme}'.");
             }
@@ -123,9 +122,9 @@ namespace Neo4jClient
 
         public BoltGraphClient(string uri, IEnumerable<string> uris, string username = null, string password = null, string realm = null, EncryptionLevel? encryptionLevel = null, bool serializeNullValues = false, bool useDriverDateTypes = false)
         : this(new Uri(uri), uris?.Select(UriCreator.From).ToList(), username, password, realm, encryptionLevel, serializeNullValues, useDriverDateTypes)
-        {}
+        { }
 
-        public BoltGraphClient(string uri, string username = null, string password= null, string realm = null, EncryptionLevel? encryptionLevel = null, bool serializeNullValues = false, bool useDriverDateTypes = false)
+        public BoltGraphClient(string uri, string username = null, string password = null, string realm = null, EncryptionLevel? encryptionLevel = null, bool serializeNullValues = false, bool useDriverDateTypes = false)
             : this(new Uri(uri), username, password, realm, encryptionLevel, serializeNullValues, useDriverDateTypes)
         { }
 
@@ -136,9 +135,10 @@ namespace Neo4jClient
         }
 
         /// <summary>
-        /// This is the <see cref="IDriver"/> instance used internally for Bolt calls. 
+        /// This is the <see cref="IDriver"/> instance used internally for Bolt calls.
         /// </summary>
         public IDriver Driver { get; set; }
+
         internal IServerAddressResolver AddressResolver => addressResolver;
         private IExecutionPolicyFactory PolicyFactory { get; }
 
@@ -151,8 +151,9 @@ namespace Neo4jClient
 
         /// <inheritdoc />
         public ICypherFluentQuery Cypher => new CypherFluentQuery(this, true);
-        #endregion
-        
+
+        #endregion Implementation of ICypherGraphClient
+
         private void CheckTransactionEnvironmentWithPolicy(IExecutionPolicy policy)
         {
             var inTransaction = InTransaction;
@@ -195,40 +196,37 @@ namespace Neo4jClient
                 return executionContext;
             }
 
-            public void Complete(CypherQuery query, Bookmark lastBookmark, Bookmarks lastBookmarks, QueryStats queryStats)
-            {
-                Complete(owner.OperationCompleted != null ? query.DebugQueryText : string.Empty, lastBookmark, lastBookmarks, 0, null, identifier: query.Identifier, bookmarks: query.Bookmarks, stats:queryStats);
-            }
+            public void Complete(CypherQuery query, Bookmarks lastBookmarks, QueryStats queryStats) =>
+                Complete(owner.OperationCompleted != null ? query.DebugQueryText : string.Empty, lastBookmarks, 0, null, identifier: query.Identifier, bookmarks: query.Bookmarks, stats: queryStats);
 
-            public void Complete(CypherQuery query, Bookmark lastBookmark, Bookmarks lastBookmarks)
+            public void Complete(CypherQuery query, Bookmarks lastBookmarks)
             {
                 // only parse the events when there's an event handler
-                Complete(owner.OperationCompleted != null ? query.DebugQueryText : string.Empty, lastBookmark, lastBookmarks, 0, null, identifier: query.Identifier, bookmarks: query.Bookmarks);
+                Complete(owner.OperationCompleted != null ? query.DebugQueryText : string.Empty, lastBookmarks, 0, null, identifier: query.Identifier, bookmarks: query.Bookmarks);
             }
 
-            public void Complete(CypherQuery query, Bookmark lastBookmark, Bookmarks lastBookmarks, int resultsCount)
+            public void Complete(CypherQuery query, Bookmarks lastBookmarks, int resultsCount)
             {
                 // only parse the events when there's an event handler
-                Complete(owner.OperationCompleted != null ? query.DebugQueryText : string.Empty, lastBookmark, lastBookmarks, resultsCount, null, query.CustomHeaders, identifier: query.Identifier, bookmarks: query.Bookmarks);
+                Complete(owner.OperationCompleted != null ? query.DebugQueryText : string.Empty, lastBookmarks, resultsCount, null, query.CustomHeaders, identifier: query.Identifier, bookmarks: query.Bookmarks);
             }
 
-            public void Complete(CypherQuery query, Bookmark lastBookmark, Bookmarks lastBookmarks, int resultsCount, QueryStats stats)
+            public void Complete(CypherQuery query, Bookmarks lastBookmarks, int resultsCount, QueryStats stats)
             {
                 // only parse the events when there's an event handler
-                Complete(owner.OperationCompleted != null ? query.DebugQueryText : string.Empty, lastBookmark, lastBookmarks, resultsCount, null, query.CustomHeaders, identifier: query.Identifier, bookmarks: query.Bookmarks, stats: stats);
+                Complete(owner.OperationCompleted != null ? query.DebugQueryText : string.Empty, lastBookmarks, resultsCount, null, query.CustomHeaders, identifier: query.Identifier, bookmarks: query.Bookmarks, stats: stats);
             }
 
-            public void Complete(CypherQuery query, Bookmark lastBookmark, Bookmarks lastBookmarks, Exception exception)
+            public void Complete(CypherQuery query, Bookmarks lastBookmarks, Exception exception)
             {
                 // only parse the events when there's an event handler
-                Complete(owner.OperationCompleted != null ? query.DebugQueryText : string.Empty, lastBookmark, lastBookmarks, -1, exception, identifier:query.Identifier, bookmarks:query.Bookmarks);
+                Complete(owner.OperationCompleted != null ? query.DebugQueryText : string.Empty, lastBookmarks, -1, exception, identifier: query.Identifier, bookmarks: query.Bookmarks);
             }
 
-            public void Complete(string queryText, Bookmark lastBookmark, Bookmarks lastBookmarks, int resultsCount = -1, Exception exception = null, NameValueCollection customHeaders = null, int? maxExecutionTime = null, string identifier = null, IEnumerable<Bookmark> bookmarks = null, QueryStats stats = null)
+            public void Complete(string queryText, Bookmarks lastBookmarks, int resultsCount = -1, Exception exception = null, NameValueCollection customHeaders = null, int? maxExecutionTime = null, string identifier = null, IEnumerable<Bookmarks> bookmarks = null, QueryStats stats = null)
             {
                 var args = new OperationCompletedEventArgs
                 {
-                    LastBookmark = lastBookmark,
                     LastBookmarks = lastBookmarks,
                     QueryText = queryText,
                     ResourcesReturned = resultsCount,
@@ -245,7 +243,7 @@ namespace Neo4jClient
             }
         }
 
-        #endregion
+        #endregion ExecutionContext class
 
         #region Implementation of IDisposable
 
@@ -265,10 +263,9 @@ namespace Neo4jClient
             GC.SuppressFinalize(this);
         }
 
-        #endregion
+        #endregion Implementation of IDisposable
 
         #region Implementation of IGraphClient
-
 
         /// <inheritdoc cref="IGraphClient.ConnectAsync"/>
         public async Task ConnectAsync(NeoServerConfiguration configuration = null)
@@ -295,9 +292,9 @@ namespace Neo4jClient
 
                 if (ServerVersion >= new Version(3, 0))
                     CypherCapabilities = CypherCapabilities.Cypher30;
-                if(ServerVersion >= new Version(4,0))
+                if (ServerVersion >= new Version(4, 0))
                     CypherCapabilities = CypherCapabilities.Cypher40;
-                if(ServerVersion >= new Version(4,4))
+                if (ServerVersion >= new Version(4, 4))
                     CypherCapabilities = CypherCapabilities.Cypher44;
             }
 
@@ -322,7 +319,7 @@ namespace Neo4jClient
             throw new InvalidOperationException(NotValidForBolt);
         }
 
-        #endregion
+        #endregion Implementation of IGraphClient
 
         #region Implementation of IRawGraphClient
 
@@ -334,7 +331,6 @@ namespace Neo4jClient
 
             var context = ExecutionContext.Begin(this);
             List<TResult> results;
-            Bookmark lastBookmark = null;
             Bookmarks lastBookmarks = null;
             QueryStats stats = null;
 
@@ -372,7 +368,7 @@ namespace Neo4jClient
                         return output;
                     }
 
-                    var result = query.IsWrite 
+                    var result = query.IsWrite
                         ? await session.ExecuteWriteAsync(Records).ConfigureAwait(false)
                         : await session.ExecuteReadAsync(Records).ConfigureAwait(false);
 
@@ -380,7 +376,6 @@ namespace Neo4jClient
 
                     if (session != null)
                     {
-                        lastBookmark = session.LastBookmark;
                         lastBookmarks = session.LastBookmarks;
                         await session.CloseAsync().ConfigureAwait(false);
                     }
@@ -388,16 +383,16 @@ namespace Neo4jClient
             }
             catch (AggregateException aggregateException)
             {
-                context.Complete(query, lastBookmark, lastBookmarks, aggregateException.TryUnwrap(out var unwrappedException) ? unwrappedException : aggregateException);
+                context.Complete(query, lastBookmarks, aggregateException.TryUnwrap(out var unwrappedException) ? unwrappedException : aggregateException);
                 throw;
             }
             catch (Exception e)
             {
-                context.Complete(query, lastBookmark, lastBookmarks, e);
+                context.Complete(query, lastBookmarks, e);
                 throw;
             }
 
-            context.Complete(query, lastBookmark, lastBookmarks, results.Count, stats);
+            context.Complete(query, lastBookmarks, results.Count, stats);
             return results;
         }
 
@@ -418,7 +413,7 @@ namespace Neo4jClient
                     ContractResolver = JsonContractResolver
                 };
 
-                List<IEnumerable<TResult>> converted = new List<IEnumerable<TResult>>();
+                List<IEnumerable<TResult>> converted = new();
                 foreach (var record in result)
                 {
                     var des = record.Deserialize(deserializer, query.ResultMode);
@@ -433,7 +428,6 @@ namespace Neo4jClient
 
             return results;
         }
-
 
         /// <inheritdoc />
         async Task IRawGraphClient.ExecuteCypherAsync(CypherQuery query)
@@ -454,42 +448,42 @@ namespace Neo4jClient
                     stats = new QueryStats(summary.Counters);
                 }
 
-                OnOperationCompleted(new OperationCompletedEventArgs {QueryText = $"BOLT:{query.QueryText}", LastBookmark = transactionManager.LastBookmark, QueryStats = stats});
+                OnOperationCompleted(new OperationCompletedEventArgs { QueryText = $"BOLT:{query.QueryText}", LastBookmarks = transactionManager.LastBookmarks, QueryStats = stats });
             }
             else
             {
                 var session = Driver.AsyncSession(ServerVersion, query.Database, query.IsWrite, query.Bookmarks);
                 IResultCursor cursor;
                 if (query.IsWrite)
-                    cursor = await session.WriteTransactionAsync(s => s.RunAsync(query, this)).ConfigureAwait(false);
+                    cursor = await session.ExecuteWriteAsync(s => s.RunAsync(query, this)).ConfigureAwait(false);
                 else
-                    cursor = await session.ReadTransactionAsync(s => s.RunAsync(query, this)).ConfigureAwait(false);
+                    cursor = await session.ExecuteReadAsync(s => s.RunAsync(query, this)).ConfigureAwait(false);
 
                 if (query.IncludeQueryStats)
                 {
                     var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
-                    executionContext.Complete(query, session.LastBookmark, session.LastBookmarks, new QueryStats(summary.Counters));
+                    executionContext.Complete(query, session.LastBookmarks, new QueryStats(summary.Counters));
                 }
-                else executionContext.Complete(query, session.LastBookmark, session.LastBookmarks);
+                else executionContext.Complete(query, session.LastBookmarks);
             }
         }
 
-        #endregion
+        #endregion Implementation of IRawGraphClient
 
         #region Implementation of ITransactionalGraphClient
 
         /// <inheritdoc />
         public ITransaction BeginTransaction()
         {
-            return BeginTransaction((IEnumerable<string>) null);
+            return BeginTransaction((IEnumerable<string>)null);
         }
-        
+
         /// <inheritdoc />
         public ITransaction BeginTransaction(string bookmark)
         {
-            return BeginTransaction(new List<string>{bookmark});
+            return BeginTransaction(new List<string> { bookmark });
         }
-        
+
         /// <inheritdoc />
         public ITransaction BeginTransaction(IEnumerable<string> bookmarks)
         {
@@ -505,14 +499,13 @@ namespace Neo4jClient
         /// <inheritdoc />
         public ITransaction BeginTransaction(TransactionScopeOption scopeOption, string bookmark)
         {
-            return BeginTransaction(scopeOption, new List<string>{bookmark}, DefaultDatabase);
+            return BeginTransaction(scopeOption, new List<string> { bookmark }, DefaultDatabase);
         }
 
         public ITransaction BeginTransaction(TransactionScopeOption scopeOption, IEnumerable<string> bookmark)
         {
-            return BeginTransaction(scopeOption,  bookmark, DefaultDatabase);
+            return BeginTransaction(scopeOption, bookmark, DefaultDatabase);
         }
-
 
         /// <inheritdoc />
         public ITransaction BeginTransaction(TransactionScopeOption scopeOption, IEnumerable<string> bookmarks, string database)
@@ -535,7 +528,7 @@ namespace Neo4jClient
         /// <inheritdoc />
         public Uri TransactionEndpoint => throw new InvalidOperationException(NotValidForBolt);
 
-        #endregion
+        #endregion Implementation of ITransactionalGraphClient
 
         #region Implementation of IBoltGraphClient
 
@@ -580,8 +573,6 @@ namespace Neo4jClient
             OperationCompleted?.Invoke(this, args);
         }
 
-        #endregion
-
-        
+        #endregion Implementation of IBoltGraphClient
     }
 }

@@ -26,11 +26,11 @@ namespace Neo4jClient.Transactions.Bolt
         }
 #else
         private static readonly AsyncLocal<IScopedTransactions<BoltTransactionScopeProxy>> scopedTransactions
-            = new AsyncLocal<IScopedTransactions<BoltTransactionScopeProxy>>();
+            = new();
 
         internal static IScopedTransactions<BoltTransactionScopeProxy> ScopedTransactions
         {
-            get => scopedTransactions.Value ?? (scopedTransactions.Value = ThreadContextHelper.CreateBoltScopedTransactions());
+            get => scopedTransactions.Value ??= ThreadContextHelper.CreateBoltScopedTransactions();
             set => scopedTransactions.Value = value;
         }
 #endif
@@ -45,7 +45,7 @@ namespace Neo4jClient.Transactions.Bolt
             ScopedTransactions = ThreadContextHelper.CreateBoltScopedTransactions();
         }
 
-        private BoltTransactionContext GetContext()
+        private static BoltTransactionContext GetContext()
         {
             var nonDtcTransaction = CurrentInternalTransaction;
             if (nonDtcTransaction != null && nonDtcTransaction.Committable)
@@ -71,11 +71,11 @@ namespace Neo4jClient.Transactions.Bolt
             }
         }
 
-        public BoltTransactionScopeProxy CurrentInternalTransaction => ScopedTransactions.TryPeek();
+        public static BoltTransactionScopeProxy CurrentInternalTransaction => ScopedTransactions.TryPeek();
 
         public ITransaction CurrentTransaction => CurrentInternalTransaction;
 
-        public Bookmark LastBookmark => CurrentTransaction.LastBookmark;
+        public Bookmarks LastBookmarks => CurrentTransaction.LastBookmarks;
 
         /// <inheritdoc cref="ITransactionManager{T}.BeginTransaction"/>
         public ITransaction BeginTransaction(TransactionScopeOption scopeOption, IEnumerable<string> bookmarks, string database)
@@ -115,47 +115,32 @@ namespace Neo4jClient.Transactions.Bolt
             return new BoltTransactionContext(new BoltNeo4jTransaction(session, transaction, database));
         }
 
-        private BoltTransactionContext GenerateTransaction(BoltTransactionContext reference)
-        {
-            return new BoltTransactionContext(reference.Transaction);
-        }
+        private static BoltTransactionContext GenerateTransaction(BoltTransactionContext reference) => new(reference.Transaction);
 
-        private void PushScopeTransaction(BoltTransactionScopeProxy transaction)
-        {
-            ScopedTransactions.Push(transaction);
-        }
+        private static void PushScopeTransaction(BoltTransactionScopeProxy transaction) => ScopedTransactions.Push(transaction);
 
-        private ITransaction BeginNewTransaction(IEnumerable<string> bookmarks, string database)
+        private BoltNeo4jTransactionProxy BeginNewTransaction(IEnumerable<string> bookmarks, string database)
         {
             var transaction = new BoltNeo4jTransactionProxy(client, GenerateTransaction(bookmarks, database), true);
             PushScopeTransaction(transaction);
             return transaction;
         }
 
-        private ITransaction BeginJoinTransaction()
+        private BoltNeo4jTransactionProxy BeginJoinTransaction()
         {
             var parentScope = CurrentInternalTransaction;
-            if (parentScope == null)
-            {
+            if (parentScope == null || !parentScope.Committable)
                 return null;
-            }
-
-            if (!parentScope.Committable)
-            {
-                return null;
-            }
 
             if (!parentScope.IsOpen)
-            {
                 throw new ClosedTransactionException(null);
-            }
 
             var joinedTransaction = new BoltNeo4jTransactionProxy(client, GenerateTransaction(parentScope.TransactionContext), false);
             PushScopeTransaction(joinedTransaction);
             return joinedTransaction;
         }
 
-        private ITransaction BeginSuppressTransaction()
+        private BoltSuppressTransactionProxy BeginSuppressTransaction()
         {
             var suppressTransaction = new BoltSuppressTransactionProxy(client);
             PushScopeTransaction(suppressTransaction);

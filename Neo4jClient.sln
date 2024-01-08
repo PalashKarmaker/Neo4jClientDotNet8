@@ -1,13 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29424.173
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33513.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neo4jClient", "Neo4jClient\Neo4jClient.csproj", "{40041343-896B-47F0-BC20-98B8AE23291A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neo4jClient.Tests", "Neo4jClient.Tests\Neo4jClient.Tests.csproj", "{7BDF43D1-C655-4912-888E-90DA18428427}"
-EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Neo4jClient.FSharp.Tests", "Neo4jClient.FSharp.Tests\Neo4jClient.FSharp.Tests.fsproj", "{612B22D2-0799-44A7-87D6-D35A81303D73}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{BDE80529-C2DE-4E79-86AB-C514A29A0C7A}"
 EndProject
@@ -18,8 +16,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Neo4jClient.nuspec = Neo4jClient.nuspec
 		README.md = README.md
 	EndProjectSection
-EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Neo4jClient.Vb.Tests", "Neo4jClient.Vb.Tests\Neo4jClient.Vb.Tests.vbproj", "{B626C23A-F801-4C65-8D7B-2BEC04C1B0B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,30 +41,12 @@ Global
 		{7BDF43D1-C655-4912-888E-90DA18428427}.Portable - Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BDF43D1-C655-4912-888E-90DA18428427}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BDF43D1-C655-4912-888E-90DA18428427}.Release|Any CPU.Build.0 = Release|Any CPU
-		{612B22D2-0799-44A7-87D6-D35A81303D73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{612B22D2-0799-44A7-87D6-D35A81303D73}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{612B22D2-0799-44A7-87D6-D35A81303D73}.Full - Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{612B22D2-0799-44A7-87D6-D35A81303D73}.Full - Debug|Any CPU.Build.0 = Debug|Any CPU
-		{612B22D2-0799-44A7-87D6-D35A81303D73}.Portable - Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{612B22D2-0799-44A7-87D6-D35A81303D73}.Portable - Debug|Any CPU.Build.0 = Debug|Any CPU
-		{612B22D2-0799-44A7-87D6-D35A81303D73}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{612B22D2-0799-44A7-87D6-D35A81303D73}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B626C23A-F801-4C65-8D7B-2BEC04C1B0B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B626C23A-F801-4C65-8D7B-2BEC04C1B0B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B626C23A-F801-4C65-8D7B-2BEC04C1B0B9}.Full - Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B626C23A-F801-4C65-8D7B-2BEC04C1B0B9}.Full - Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B626C23A-F801-4C65-8D7B-2BEC04C1B0B9}.Portable - Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B626C23A-F801-4C65-8D7B-2BEC04C1B0B9}.Portable - Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B626C23A-F801-4C65-8D7B-2BEC04C1B0B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B626C23A-F801-4C65-8D7B-2BEC04C1B0B9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7BDF43D1-C655-4912-888E-90DA18428427} = {BDE80529-C2DE-4E79-86AB-C514A29A0C7A}
-		{612B22D2-0799-44A7-87D6-D35A81303D73} = {BDE80529-C2DE-4E79-86AB-C514A29A0C7A}
-		{B626C23A-F801-4C65-8D7B-2BEC04C1B0B9} = {BDE80529-C2DE-4E79-86AB-C514A29A0C7A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {60B01A44-2FCA-4100-A3AE-B5E07605DC23}

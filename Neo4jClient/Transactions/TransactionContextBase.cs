@@ -17,10 +17,7 @@ namespace Neo4jClient.Transactions
         /// </summary>
         private Task previousTask;
 
-        protected TransactionContextBase(ITransaction transaction)
-        {
-            Transaction = transaction;
-        }
+        protected TransactionContextBase(ITransaction transaction) => Transaction = transaction;
 
         /// <summary>
         /// The Neo4j transaction object.
@@ -28,7 +25,7 @@ namespace Neo4jClient.Transactions
         public ITransaction Transaction { get; }
 
         public NameValueCollection CustomHeaders { get; set; }
-        public Bookmark LastBookmark => Transaction.LastBookmark;
+        public Bookmarks LastBookmarks => Transaction.LastBookmarks;
         public bool IsOpen => Transaction.IsOpen;
 
         protected abstract Task<TResponse> RunQuery(TClient client, CypherQuery query, IExecutionPolicy policy, string commandDescription);

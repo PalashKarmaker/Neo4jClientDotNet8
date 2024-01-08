@@ -17,7 +17,7 @@ namespace Neo4jClient.Transactions.Bolt
         private bool disposing = false;
         private BoltTransactionContext transactionContext;
 
-        internal Neo4j.Driver.IAsyncTransaction DriverTransaction => TransactionContext.BoltTransaction.DriverTransaction;
+        internal IAsyncTransaction DriverTransaction => TransactionContext.BoltTransaction.DriverTransaction;
         public BoltTransactionContext TransactionContext => transactionContext;
 
         protected BoltTransactionScopeProxy(ITransactionalGraphClient client, BoltTransactionContext transactionContext)
@@ -64,6 +64,6 @@ namespace Neo4jClient.Transactions.Bolt
         public abstract Task RollbackAsync();
         public abstract Task KeepAliveAsync();
         public abstract bool IsOpen { get; }
-        public abstract Bookmark LastBookmark { get; }
+        public abstract Bookmarks LastBookmarks { get; }
     }
 }
